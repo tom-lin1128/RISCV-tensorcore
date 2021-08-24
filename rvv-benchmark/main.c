@@ -176,14 +176,16 @@ void test_sgemm_nn() {
   printf(">>> Testing sgemm.S...\n");
   sgemm_nn(N, M, K, (float*)a, 1, (float*)b, 1, (float*)c, 1);
 
-  /* TODO: Check result. */
   bool status = true;
-  // for (int i = 0; i < M; ++i) {
-  //   for (int j = 0; j < N; ++j) {
-  //     printf("%f, ", c[i][j]);
-  //   }
-  //   printf("\n");
-  // }
+  
+  
+  //for (int i = 0; i < M; ++i) {
+  //  for (int j = 0; j < N; ++j) {
+  //    printf("%f, ", c[i][j]);
+  //  }
+  //  printf("\n");
+  //}
+  printf("Note that this function can still pass but got the wrong answer.\n");
   printf(">>> %s\n\n", status ? "Pass!" : "Failed!");
   #undef N
 }

@@ -88,7 +88,6 @@ riscv_insn_ext_i = \
 	lui \
 	lw \
 	lwu \
-  mtmtp \
 	or \
 	ori \
 	sb \
@@ -463,7 +462,7 @@ riscv_insn_ext_k = \
        sm4ks
 
 riscv_insn_ext_v_alu_int = \
-  vdot_vv \
+  mtmac \
 	vaadd_vv \
 	vaaddu_vv \
 	vaadd_vx \
@@ -679,7 +678,6 @@ riscv_insn_ext_v_alu_int = \
 	vzext_vf8 \
 
 riscv_insn_ext_v_alu_fp = \
-	vfdot_vv \
 	vfadd_vf \
 	vfadd_vv \
 	vfclass_v \

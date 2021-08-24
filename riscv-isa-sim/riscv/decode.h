@@ -17,6 +17,7 @@
 #include "softfloat_types.h"
 #include "specialize.h"
 #include <cinttypes>
+#include <stdio.h>
 
 typedef int64_t sreg_t;
 typedef uint64_t reg_t;
@@ -641,6 +642,17 @@ static inline bool is_aligned(const unsigned val, const unsigned pos)
   } \
   P.VU.vstart = 0; 
 
+//extend
+#define VI_LOOP_REDUCTION_END_EX(x) \
+  } \
+  if (vl > 0) { \
+    vd_0_des = vd_0_res; \
+    vd_1_des = vd_1_res; \
+    vd_2_des = vd_2_res; \
+    vd_3_des = vd_3_res; \
+  } \
+  P.VU.vstart = 0; 
+
 #define VI_LOOP_CMP_BASE \
   require(P.VU.vsew >= e8 && P.VU.vsew <= e64); \
   require_vector(true);\
@@ -737,10 +749,12 @@ static inline bool is_aligned(const unsigned val, const unsigned pos)
 
 // extend
 #define VV_PARAMS_EX(x) \
-  type_sew_t<x>::type &vd = P.VU.elt<type_sew_t<x>::type>(31, i, true); \
+  type_sew_t<x>::type &vd = P.VU.elt<type_sew_t<x>::type>(28, i, true); \
   type_sew_t<x>::type vs1 = P.VU.elt<type_sew_t<x>::type>(rs1_num, i); \
-  type_sew_t<x>::type vs2 = P.VU.elt<type_sew_t<x>::type>(rs2_num, i);
+  type_sew_t<x>::type vs2 = P.VU.elt<type_sew_t<x>::type>(rs2_num, (i*4 + step)%16);
 
+
+  
 #define VX_PARAMS(x) \
   type_sew_t<x>::type &vd = P.VU.elt<type_sew_t<x>::type>(rd_num, i, true); \
   type_sew_t<x>::type rs1 = (type_sew_t<x>::type)RS1; \
@@ -969,7 +983,7 @@ static inline bool is_aligned(const unsigned val, const unsigned pos)
   for (reg_t i=P.VU.vstart; i<vl; ++i){ \
     VI_LOOP_ELEMENT_SKIP(); \
     auto vs2 = P.VU.elt<type_sew_t<x>::type>(rs2_num, i); \
-
+    
 #define REDUCTION_LOOP(x, BODY) \
   VI_LOOP_REDUCTION_BASE(x) \
   BODY; \
@@ -991,16 +1005,27 @@ static inline bool is_aligned(const unsigned val, const unsigned pos)
 
 #define VI_LOOP_REDUCTION_BASE_EX(x) \
   require(x >= e8 && x <= e64); \
-  auto &vd_0_des = P.VU.elt<type_sew_t<x>::type>(rd_num, 0, true); \
-  auto vd_0_res = 0; \
-  for (reg_t i=P.VU.vstart; i<vl; ++i){ \
+  auto &vd_0_des = P.VU.elt<type_sew_t<x>::type>(rd_num, 0+step, true); \
+  auto &vd_1_des = P.VU.elt<type_sew_t<x>::type>(rd_num, 4+step, true); \
+  auto &vd_2_des = P.VU.elt<type_sew_t<x>::type>(rd_num, 8+step, true); \
+  auto &vd_3_des = P.VU.elt<type_sew_t<x>::type>(rd_num, 12+step, true); \
+  auto vd_0_res = P.VU.elt<type_sew_t<x>::type>(rd_num, 0+step, true); \
+  auto vd_1_res = P.VU.elt<type_sew_t<x>::type>(rd_num, 4+step, true); \
+  auto vd_2_res = P.VU.elt<type_sew_t<x>::type>(rd_num, 8+step, true);; \
+  auto vd_3_res = P.VU.elt<type_sew_t<x>::type>(rd_num, 12+step, true);; \
+  for (reg_t i=P.VU.vstart; i<4; ++i){ \
     VI_LOOP_ELEMENT_SKIP(); \
-    auto vs_temp = P.VU.elt<type_sew_t<x>::type>(31, i); \
+    auto vs_temp_0 = P.VU.elt<type_sew_t<x>::type>(28, i); \
+    auto vs_temp_1 = P.VU.elt<type_sew_t<x>::type>(28, i+4); \
+    auto vs_temp_2 = P.VU.elt<type_sew_t<x>::type>(28, i+8); \
+    auto vs_temp_3 = P.VU.elt<type_sew_t<x>::type>(28, i+12); \
 
+    
+    
 #define REDUCTION_LOOP_EX(x, BODY) \
   VI_LOOP_REDUCTION_BASE_EX(x) \
   BODY; \
-  VI_LOOP_REDUCTION_END(x)
+  VI_LOOP_REDUCTION_END_EX(x)
 
 #define VI_VV_LOOP_REDUCTION_EX(BODY) \
   VI_CHECK_REDUCTION(false); \
@@ -1014,6 +1039,10 @@ static inline bool is_aligned(const unsigned val, const unsigned pos)
     REDUCTION_LOOP_EX(e64, BODY) \
   }
   
+
+
+
+
 // reduction loop - unsgied
 #define VI_ULOOP_REDUCTION_BASE(x) \
   require(x >= e8 && x <= e64); \

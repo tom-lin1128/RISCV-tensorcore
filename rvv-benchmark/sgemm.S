@@ -2,7 +2,7 @@
     .balign 4
     .global sgemm_nn
 # RV64IDV system
-#
+# ***Important: Here I try to change it to fit RV32GCV, Line58 to 60: sd > sw and line227 to 229: ld > lw***  . And this function can run, but got wrong answer.
 # void
 # sgemm_nn(size_t n,
 #          size_t m,
@@ -55,9 +55,9 @@
 
 sgemm_nn:
     addi sp, sp, -FRAMESIZE
-    sd s0, OFFSET0(sp)
-    sd s1, OFFSET1(sp)
-    sd s2, OFFSET2(sp)
+    sw s0, OFFSET0(sp)
+    sw s1, OFFSET1(sp)
+    sw s2, OFFSET2(sp)
 
     # Check for zero size matrices        
     beqz n, exit
@@ -224,8 +224,8 @@ end_rows:
     # Not done.
 
 exit:
-    ld s0, OFFSET0(sp)
-    ld s1, OFFSET1(sp)
-    ld s2, OFFSET2(sp)
+    lw s0, OFFSET0(sp)
+    lw s1, OFFSET1(sp)
+    lw s2, OFFSET2(sp)
     addi sp, sp, FRAMESIZE
     ret
